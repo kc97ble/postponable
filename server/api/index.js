@@ -23,7 +23,7 @@ const DEFAULT_FORM = {
 function form(id) {
   return {
     read: (cb) => {
-      db.forms.find({_id: id}, cb);
+      db.forms.findOne({_id: id}, cb);
     },
     delete: (cb) => {
       db.forms.remove({_id: id}, {}, cb);
@@ -32,7 +32,7 @@ function form(id) {
       db.forms.update(
           {_id: id},
           newForm,
-          {},
+          {returnUpdatedDocs: true},
           (err, numAffected, affectedDocuments, upsert) =>
             cb && cb(err, {numAffected, affectedDocuments, upsert})
       );

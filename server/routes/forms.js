@@ -1,16 +1,20 @@
+// forms.js
+
 const express = require('express');
-const api = require('../api');
 const path = require('path');
-const debug = require('debug')('server:forms');
+// const debug = require('debug')('server:forms');
+
+const api = require('../api');
+const utils = require('../utils');
 
 const router = new express.Router();
 
-function defaultHandler(req, res) {
+function defaultHandler(req, res, transformErr = null, transformData = null) {
   return function(err, data) {
     if (err) {
-      res.status(400).json(err);
+      res.status(400).json(transformErr ? transformErr(err) : err);
     } else {
-      res.json(data);
+      res.json(transformData ? transformData(data) : data);
     }
   };
 }
@@ -40,6 +44,11 @@ router.get('/:formID/read', function(req, res) {
   api.form(formID).read(defaultHandler(req, res));
 });
 
+router.get('/:formID/processed', function(req, res) {
+  const {formID} = req.params;
+  api.form(formID).read(defaultHandler(req, res, null, utils.getProcessedForm));
+});
+
 router.delete('/:formID/delete', function(req, res) {
   const {formID} = req.params;
   api.form(formID).delete(defaultHandler(req, res));
@@ -47,8 +56,12 @@ router.delete('/:formID/delete', function(req, res) {
 
 router.put('/:formID/update', function(req, res) {
   const {formID} = req.params;
-  debug(formID, req.body);
-  api.form(formID).update(req.body, defaultHandler(req, res));
+  const {code} = req.body;
+  if (!!code && utils.isJsonString(code)) {
+    api.form(formID).update({code}, defaultHandler(req, res));
+  } else {
+    res.status(400).json({message: 'Invalid JSON'});
+  }
 });
 
 router.all('*', (req, res) => {
