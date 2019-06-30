@@ -1,5 +1,10 @@
 import React from 'react';
 
 export default function ViewPage() {
-  return <div>Hello World</div>;
+  const c = 1;
+  return (
+    <div>
+      <div>Hello World</div>
+    </div>
+  );
 }
